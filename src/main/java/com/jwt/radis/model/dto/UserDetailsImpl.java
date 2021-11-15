@@ -1,0 +1,48 @@
+package com.jwt.radis.model.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserDetailsImpl implements UserDetails {
+
+    private Long id;
+
+    private String username;
+
+    private String fullName;
+
+    private String password;
+
+    private List<GrantedAuthority> authorities = new ArrayList<>();
+
+    private boolean enabled = true;
+
+    public UserDetailsImpl(String username, String fullName) {
+        this.username = username;
+        this.fullName = fullName;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return enabled;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return enabled;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return enabled;
+    }
+}
