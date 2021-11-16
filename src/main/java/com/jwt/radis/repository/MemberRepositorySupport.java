@@ -1,8 +1,10 @@
 package com.jwt.radis.repository;
 
 import com.jwt.radis.model.entity.Member;
+import com.jwt.radis.model.entity.QMember;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
@@ -10,23 +12,29 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-@RequiredArgsConstructor
-public class MemberRepositoryImpl {
+public class MemberRepositorySupport extends QuerydslRepositorySupport {
 
-    private final EntityManager em;
     private final JPAQueryFactory queryFactory;
 
+    QMember qMember;
+
+    public MemberRepositorySupport(JPAQueryFactory queryFactory){
+        super(Member.class);
+        this.queryFactory = queryFactory;
+
+    }
+
     public void save(Member member) {
-        em.persist(member);
+        getEntityManager().persist(member);
     }
 
     public Optional<Member> findById(Long id) {
-        Member findMember = em.find(Member.class, id);
+        Member findMember = getEntityManager().find(Member.class, id);
         return Optional.ofNullable(findMember);
     }
 
     public List<Member> findAll() {
-        return em.createQuery("select m from Member m", Member.class)
+        return getEntityManager().createQuery("select m from Member m", Member.class)
                 .getResultList();
     }
 
@@ -36,9 +44,12 @@ public class MemberRepositoryImpl {
 //    }
 
     public Optional<Member> findByUsername(String username) {
-        return Optional.ofNullable(em.createQuery("select m from Member m where m.username = :username", Member.class)
-                .setParameter("username", username)
-                .getSingleResult());
+
+        Member member = queryFactory.selectFrom(qMember)
+                .where(qMember.username.eq(username))
+                .fetchOne();
+
+        return Optional.ofNullable(member);
     }
 
 //    public List<Member> findByUsername_Querydsl(String username) {

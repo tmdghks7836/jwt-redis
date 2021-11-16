@@ -35,6 +35,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'com.querydsl:querydsl-jpa'
     runtimeOnly 'com.h2database:h2'
+    implementation 'org.mapstruct:mapstruct:1.4.1.Final'
 }
 
 test {

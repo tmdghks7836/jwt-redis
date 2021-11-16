@@ -31,7 +31,7 @@ public class MemberController {
                                 HttpServletResponse res) {
         try {
 
-            final MemberResponse memberResponse = memberService.loginUser(authenticationRequest);
+            final MemberResponse memberResponse = memberService.getSigningUser(authenticationRequest);
 
             final String token = JwtTokenUtils.generateToken(memberResponse.getUsername(), JwtTokenType.ACCESS);
 

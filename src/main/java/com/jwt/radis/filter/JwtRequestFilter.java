@@ -2,7 +2,7 @@ package com.jwt.radis.filter;
 
 import com.jwt.radis.model.entity.Member;
 import com.jwt.radis.model.type.JwtTokenType;
-import com.jwt.radis.repository.MemberRepositoryImpl;
+import com.jwt.radis.repository.MemberRepositorySupport;
 import com.jwt.radis.service.CustomUserDetailsService;
 import com.jwt.radis.utils.CookieUtil;
 import com.jwt.radis.utils.JwtTokenUtils;
@@ -15,7 +15,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -36,7 +35,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private RedisUtil redisUtil;
 
     @Autowired
-    private MemberRepositoryImpl memberRepository;
+    private MemberRepositorySupport memberRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain) throws ServletException, IOException {
