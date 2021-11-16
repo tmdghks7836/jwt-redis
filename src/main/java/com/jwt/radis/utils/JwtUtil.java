@@ -2,6 +2,7 @@ package com.jwt.radis.utils;
 
 import com.jwt.radis.model.dto.MemberResponse;
 import com.jwt.radis.model.entity.Member;
+import com.jwt.radis.model.type.JwtTokenType;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -45,18 +46,6 @@ public class JwtUtil {
     public static Boolean isTokenExpired(String token) {
         final Date expiration = extractAllClaims(token).getExpiration();
         return expiration.before(new Date());
-    }
-
-    public static String generateToken(MemberResponse member) {
-        return doGenerateToken(member.getUsername(), TOKEN_VALIDATION_SECOND);
-    }
-
-    public static String generateToken(Member member) {
-        return doGenerateToken(member.getUsername(), TOKEN_VALIDATION_SECOND);
-    }
-
-    public static String generateRefreshToken(MemberResponse member) {
-        return doGenerateToken(member.getUsername(), REFRESH_TOKEN_VALIDATION_SECOND);
     }
 
     public static String doGenerateToken(String username, long expireTime) {

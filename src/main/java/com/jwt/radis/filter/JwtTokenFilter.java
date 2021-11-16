@@ -45,18 +45,17 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
         // Get jwt token and validate
         final String token = header.split(" ")[1].trim();
+
         if (!jwtTokenUtils.validate(token)) {
             chain.doFilter(request, response);
             return;
         }
 
         // Get user identity and set it on the spring security context
-        UserDetailsImpl userDetails = new UserDetailsImpl(jwtTokenUtils.getUserId(token), "박영일");
+        UserDetailsImpl userDetails = new UserDetailsImpl(
+                jwtTokenUtils.getId(token),
+                jwtTokenUtils.getUsername(token));
 
-        Integer uid = jwtTokenUtils.getUid(token);
-        if (uid != null) {
-            userDetails.setId(new Long(uid));
-        }
         userDetails.setAuthorities(AuthorityUtils.createAuthorityList(jwtTokenUtils.getRole(token)));
 
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(

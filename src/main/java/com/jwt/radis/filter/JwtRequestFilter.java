@@ -1,9 +1,11 @@
 package com.jwt.radis.filter;
 
 import com.jwt.radis.model.entity.Member;
+import com.jwt.radis.model.type.JwtTokenType;
 import com.jwt.radis.repository.MemberRepositoryImpl;
 import com.jwt.radis.service.CustomUserDetailsService;
 import com.jwt.radis.utils.CookieUtil;
+import com.jwt.radis.utils.JwtTokenUtils;
 import com.jwt.radis.utils.JwtUtil;
 import com.jwt.radis.utils.RedisUtil;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -81,7 +83,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
                     Member member = memberRepository.findByUsername(refreshUname).get();
                     member.setUsername(refreshUname);
-                    String newToken =JwtUtil.generateToken(member);
+                    String newToken = JwtTokenUtils.generateToken(member.getUsername(), JwtTokenType.REFRESH);
 
                     Cookie newAccessToken = CookieUtil.createCookie(JwtUtil.ACCESS_TOKEN_NAME,newToken);
                     httpServletResponse.addCookie(newAccessToken);

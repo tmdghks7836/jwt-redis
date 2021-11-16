@@ -1,8 +1,8 @@
-1. access token, refresh token 둘 다 쿠키로 저장 http only, (secure 설정은 권고)
+1. access token은 bearer header에  refresh token은 쿠키로 저장 http only, (secure 설정은 권고)
 
 2. refresh token 은 DB관리가 필요함 (jwt는 문자열이고 폐기 처리가 안되므로 db 나 redis로 관리)
 
-3. jwt token 만료 시 가지고 있던 refresh token으로 새로 요청 
+3. access token 만료 시 가지고 있던 refresh token으로 발급 요청 
   jwt token이 만료되지 않았을 경우 요청한다면 페기처리 
 
 4. XSS (cross site script) XSRF or CSRF(cross site request forgery) 
@@ -11,4 +11,4 @@
 
 5. claim은 서버에서만 접근 가능(http only)하고, 인가 시 db조회 할 필요 없을 정도로 정보를 넣어줌.
 
-jwt token 만료 시 서버에서 jwt token 쌍에 맞는 ref
+6. refresh token을 받은 서버는 데이터베이스에 저장된 값과 대조해본다. 

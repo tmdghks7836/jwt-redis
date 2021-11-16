@@ -1,5 +1,6 @@
 package com.jwt.radis.model.dto;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,15 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserDetailsImpl implements UserDetails {
 
     private Long id;
 
     private String username;
-
-    private String fullName;
 
     private String password;
 
@@ -26,9 +24,9 @@ public class UserDetailsImpl implements UserDetails {
 
     private boolean enabled = true;
 
-    public UserDetailsImpl(String username, String fullName) {
+    public UserDetailsImpl(Long id, String username) {
+        this.id = id;
         this.username = username;
-        this.fullName = fullName;
     }
 
     @Override
