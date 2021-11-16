@@ -1,5 +1,6 @@
 package com.jwt.radis.utils;
 
+import com.jwt.radis.model.dto.UserDetailsImpl;
 import com.jwt.radis.model.type.JwtTokenType;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -63,6 +64,7 @@ public class JwtTokenUtils {
 
         String jwt = Jwts.builder()
                 .setClaims(claims)
+                .setIssuer(jwtIssuer)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expireTime))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -107,8 +109,8 @@ public class JwtTokenUtils {
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
 
-        User principal = new User(getUsername(token), "", authorities);
+        UserDetailsImpl userDetails = new UserDetailsImpl(getId(token), getUsername(token));
 
-        return new UsernamePasswordAuthenticationToken(principal, token, authorities);
+        return new UsernamePasswordAuthenticationToken(userDetails, token, authorities);
     }
 }
