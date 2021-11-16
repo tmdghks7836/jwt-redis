@@ -5,12 +5,12 @@ public enum JwtTokenType {
 
 
     private Long validationSeconds;
-    ;
-    JwtTokenType(Long validationSeconds){
+
+    JwtTokenType(Long validationSeconds) {
         this.validationSeconds = validationSeconds;
     }
 
-    public Long getValidationSeconds(){
+    public Long getValidationSeconds() {
         return validationSeconds;
     }
 }

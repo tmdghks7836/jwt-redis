@@ -9,44 +9,26 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class JwtTokenUtils {
 
     private static final String JWT_SECRET_KEY = "zdtlD3JK56m6wTTgsNFhqzjqPdsafevvvdsaeasfdxcz";
+
     private static final String jwtIssuer = "seungHwan";
-
-
-
-    public String generateAccessToken(String id, String username, String role) {
-        return Jwts.builder()
-                .setSubject(String.format("%s,%s", id, username))
-                .setIssuer(jwtIssuer)
-                .claim("role", role)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000)) // 1 week
-                .signWith(SignatureAlgorithm.HS512, JWT_SECRET_KEY)
-                .compact();
-    }
-
-    public String generateRefreshToken(String id, String username, String role) {
-        return Jwts.builder()
-                .setSubject(String.format("%s,%s", id, username))
-                .setIssuer(jwtIssuer)
-                .claim("role", role)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000)) // 1 week
-                .signWith(getSigningKey())
-                .compact();
-    }
 
     public static String getUsername(String token) {
         return extractAllClaims(token).get("username", String.class);
@@ -71,10 +53,10 @@ public class JwtTokenUtils {
     }
 
     public static String generateToken(String username, JwtTokenType tokenType) {
-        return doGenerateToken(username, tokenType.getValidationSeconds());
+        return generateToken(username, tokenType.getValidationSeconds());
     }
 
-    public static String doGenerateToken(String username, long expireTime) {
+    public static String generateToken(String username, long expireTime) {
 
         Claims claims = Jwts.claims();
         claims.put("username", username);
@@ -89,7 +71,7 @@ public class JwtTokenUtils {
         return jwt;
     }
 
-    public boolean validate(String token) {
+    public static boolean validate(String token) {
         try {
             Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
@@ -116,5 +98,17 @@ public class JwtTokenUtils {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    public Authentication getAuthentication(String token) {
+
+        Collection<? extends GrantedAuthority> authorities =
+                Arrays.stream(getRole(token).split(","))
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toList());
+
+        User principal = new User(getUsername(token), "", authorities);
+
+        return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
 }

@@ -26,9 +26,6 @@ import static org.springframework.util.StringUtils.isEmpty;
 @Slf4j
 public class JwtTokenFilter extends OncePerRequestFilter {
 
-    @Autowired
-    JwtTokenUtils jwtTokenUtils;
-
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
@@ -46,17 +43,17 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         // Get jwt token and validate
         final String token = header.split(" ")[1].trim();
 
-        if (!jwtTokenUtils.validate(token)) {
+        if (!JwtTokenUtils.validate(token)) {
             chain.doFilter(request, response);
             return;
         }
 
         // Get user identity and set it on the spring security context
         UserDetailsImpl userDetails = new UserDetailsImpl(
-                jwtTokenUtils.getId(token),
-                jwtTokenUtils.getUsername(token));
+                JwtTokenUtils.getId(token),
+                JwtTokenUtils.getUsername(token));
 
-        userDetails.setAuthorities(AuthorityUtils.createAuthorityList(jwtTokenUtils.getRole(token)));
+        userDetails.setAuthorities(AuthorityUtils.createAuthorityList(JwtTokenUtils.getRole(token)));
 
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                 userDetails, null,

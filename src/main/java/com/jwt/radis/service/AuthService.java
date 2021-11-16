@@ -14,6 +14,7 @@ public class AuthService {
 
     public MemberResponse loginUser(AuthenticationRequest authenticationRequest){
 
+
       //  memberRepository.findById(au) authenticationRequest
         return null;
     }

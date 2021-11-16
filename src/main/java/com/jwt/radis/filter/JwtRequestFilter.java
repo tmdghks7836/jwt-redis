@@ -26,7 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Slf4j
-@Component
+@Deprecated
 public class JwtRequestFilter extends OncePerRequestFilter {
 
     @Autowired
