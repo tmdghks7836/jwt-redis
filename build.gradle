@@ -21,19 +21,20 @@ repositories {
 }
 
 dependencies {
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.2'
     runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.2'
     runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.2'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-    runtimeOnly 'com.h2database:h2'
     implementation 'com.querydsl:querydsl-jpa'
+    runtimeOnly 'com.h2database:h2'
 }
 
 test {
@@ -46,13 +47,13 @@ querydsl {
     jpa = true
     querydslSourcesDir = querydslDir
 }
-sourceSets {
-    main.java.srcDir querydslDir
-}
+
 configurations {
     querydsl.extendsFrom compileClasspath
 }
 compileQuerydsl {
     options.annotationProcessorPath = configurations.querydsl
 }
-
+sourceSets {
+    main.java.srcDir querydslDir
+}
