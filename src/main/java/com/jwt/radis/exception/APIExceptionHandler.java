@@ -9,7 +9,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 @Slf4j
 @RestControllerAdvice(basePackages = "com.skt.our365.home.api")
-public class HomeConnectPlusAPIExceptionHandler extends ResponseEntityExceptionHandler {
+public class APIExceptionHandler extends ResponseEntityExceptionHandler {
 
 
     @ExceptionHandler(RuntimeException.class)
@@ -20,8 +20,8 @@ public class HomeConnectPlusAPIExceptionHandler extends ResponseEntityExceptionH
         handleException(ex, request);
     }
 
-    @ExceptionHandler(value = {CustomRuntimeException.class})
-    protected ResponseEntity<ErrorResponse> handleDataException(CustomRuntimeException e) {
+    @ExceptionHandler(value = {LRuntimeException.class})
+    protected ResponseEntity<ErrorResponse> handleDataException(LRuntimeException e) {
         e.printStackTrace();
         log.error("handleDataException throw Exception : {}", e.getErrorCode());
         return ErrorResponse.toResponseEntity(e.getErrorCode());

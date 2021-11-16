@@ -1,6 +1,6 @@
 package com.jwt.radis.service;
 
-import com.jwt.radis.exception.CustomRuntimeException;
+import com.jwt.radis.exception.LRuntimeException;
 import com.jwt.radis.exception.ErrorCode;
 import com.jwt.radis.model.dto.AuthenticationRequest;
 import com.jwt.radis.model.dto.MemberResponse;
@@ -27,13 +27,13 @@ public class MemberService {
         Optional<Member> memberOptional = memberRepositorySupport.findByUsername(authenticationRequest.getUsername());
 
         if (!memberOptional.isPresent()) {
-            throw new CustomRuntimeException(ErrorCode.RESOURCE_NOT_FOUND);
+            throw new LRuntimeException(ErrorCode.RESOURCE_NOT_FOUND);
         }
 
         Member member = memberOptional.get();
 
         if(!bCryptPasswordEncoder.matches(authenticationRequest.getPassword(), member.getPassword())){
-            throw new CustomRuntimeException(ErrorCode.NOT_MATCHED_PASSWORD);
+            throw new LRuntimeException(ErrorCode.NOT_MATCHED_PASSWORD);
         }
 
         return MemberMapper.INSTANCE.modelToDto(member);
