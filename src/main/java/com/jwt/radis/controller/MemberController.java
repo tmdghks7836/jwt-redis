@@ -2,9 +2,8 @@ package com.jwt.radis.controller;
 
 import com.jwt.radis.model.dto.AuthenticationRequest;
 import com.jwt.radis.model.dto.MemberResponse;
-import com.jwt.radis.model.entity.Member;
 import com.jwt.radis.model.type.JwtTokenType;
-import com.jwt.radis.service.AuthService;
+import com.jwt.radis.service.MemberService;
 import com.jwt.radis.utils.CookieUtil;
 import com.jwt.radis.utils.JwtTokenUtils;
 import com.jwt.radis.utils.JwtUtil;
@@ -24,7 +23,7 @@ public class MemberController {
     private RedisUtil redisUtil;
 
     @Autowired
-    private AuthService authService;
+    private MemberService memberService;
 
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody AuthenticationRequest authenticationRequest,
@@ -32,7 +31,7 @@ public class MemberController {
                                 HttpServletResponse res) {
         try {
 
-            final MemberResponse memberResponse = authService.loginUser(authenticationRequest);
+            final MemberResponse memberResponse = memberService.loginUser(authenticationRequest);
 
             final String token = JwtTokenUtils.generateToken(memberResponse.getUsername(), JwtTokenType.ACCESS);
 
