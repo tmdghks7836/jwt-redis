@@ -82,7 +82,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
                     Member member = memberRepository.findByUsername(refreshUname).get();
                     member.setUsername(refreshUname);
-                    String newToken = JwtTokenUtils.generateToken(member.getUsername(), JwtTokenType.REFRESH);
+                    String newToken = JwtTokenUtils.generateToken(member, JwtTokenType.REFRESH);
 
                     Cookie newAccessToken = JwtTokenUtils.createCookie(JwtTokenType.ACCESS, newToken);
                     httpServletResponse.addCookie(newAccessToken);

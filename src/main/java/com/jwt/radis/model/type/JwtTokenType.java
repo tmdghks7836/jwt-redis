@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum JwtTokenType {
-    ACCESS("accessToken",1000L * 10), REFRESH("refreshToken",1000L * 60 * 24 * 2);
+    ACCESS("accessToken", 1000L * 60 * 30), REFRESH("refreshToken", 1000L * 60 * 60 * 24 * 2);
 
     private Long validationSeconds;
 

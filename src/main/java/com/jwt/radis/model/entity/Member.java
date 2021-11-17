@@ -1,5 +1,6 @@
 package com.jwt.radis.model.entity;
 
+import com.jwt.radis.model.base.RegisteredUser;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,7 +18,7 @@ import javax.persistence.Table;
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Member {
+public class Member implements RegisteredUser {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

@@ -1,5 +1,6 @@
 package com.jwt.radis.utils;
 
+import com.jwt.radis.model.base.RegisteredUser;
 import com.jwt.radis.model.dto.UserDetailsImpl;
 import com.jwt.radis.model.type.JwtTokenType;
 import io.jsonwebtoken.Claims;
@@ -15,7 +16,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.util.StringUtils;
 
 import javax.servlet.http.Cookie;
 import java.nio.charset.StandardCharsets;
@@ -40,8 +41,11 @@ public class JwtTokenUtils {
         return extractAllClaims(token).get("id", Long.class);
     }
 
-    public static String getRole(String token) {
-        return extractAllClaims(token).get("role", String.class);
+    public static String[] getRoles(String token) {
+
+        String rolePayload = extractAllClaims(token).get("role", String.class);
+
+        return StringUtils.hasText(rolePayload) ? rolePayload.split(",") : null;
     }
 
     public static Boolean isTokenExpired(String token) {
@@ -54,14 +58,22 @@ public class JwtTokenUtils {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public static String generateToken(String username, JwtTokenType tokenType) {
-        return generateToken(username, tokenType.getValidationSeconds());
-    }
-
-    public static String generateToken(String username, long expireTime) {
+    public static String generateToken(RegisteredUser registeredUser, JwtTokenType tokenType) {
 
         Claims claims = Jwts.claims();
-        claims.put("username", username);
+        claims.put("id", registeredUser.getId());
+        claims.put("username", registeredUser.getUsername());
+
+        log.info(tokenType.getCookieName());
+        return generateToken(
+                claims,
+                tokenType.getValidationSeconds()
+        );
+    }
+
+    public static String generateToken(Claims claims, long expireTime) {
+
+        log.info("expireDate =>{}", new Date(System.currentTimeMillis() + expireTime));
 
         String jwt = Jwts.builder()
                 .setClaims(claims)
@@ -106,7 +118,7 @@ public class JwtTokenUtils {
     public Authentication getAuthentication(String token) {
 
         Collection<? extends GrantedAuthority> authorities =
-                Arrays.stream(getRole(token).split(","))
+                Arrays.stream(getRoles(token))
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
 
