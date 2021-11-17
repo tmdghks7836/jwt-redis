@@ -41,9 +41,9 @@ public class MemberController {
 
             final String refreshJwt = JwtTokenUtils.generateToken(memberResponse.getUsername(), JwtTokenType.REFRESH);
 
-            Cookie accessToken = CookieUtil.createCookie(JwtUtil.ACCESS_TOKEN_NAME, token);
+            Cookie accessToken = JwtTokenUtils.createCookie(JwtTokenType.ACCESS, token);
 
-            Cookie refreshToken = CookieUtil.createCookie(JwtUtil.REFRESH_TOKEN_NAME, refreshJwt);
+            Cookie refreshToken = JwtTokenUtils.createCookie(JwtTokenType.REFRESH, refreshJwt);
 
             redisUtil.setDataExpire(refreshJwt, memberResponse.getUsername(), JwtUtil.REFRESH_TOKEN_VALIDATION_SECOND);
 

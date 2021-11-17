@@ -1,16 +1,17 @@
 package com.jwt.radis.model.type;
 
-public enum JwtTokenType {
-    ACCESS(1000L * 10), REFRESH(1000L * 60 * 24 * 2);
+import lombok.Getter;
 
+@Getter
+public enum JwtTokenType {
+    ACCESS("accessToken",1000L * 10), REFRESH("refreshToken",1000L * 60 * 24 * 2);
 
     private Long validationSeconds;
 
-    JwtTokenType(Long validationSeconds) {
-        this.validationSeconds = validationSeconds;
-    }
+    private String cookieName;
 
-    public Long getValidationSeconds() {
-        return validationSeconds;
+    JwtTokenType(String cookieName, Long validationSeconds) {
+        this.validationSeconds = validationSeconds;
+        this.cookieName = cookieName;
     }
 }

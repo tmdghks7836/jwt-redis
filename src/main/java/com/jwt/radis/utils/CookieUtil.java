@@ -1,7 +1,5 @@
 package com.jwt.radis.utils;
 
-import org.springframework.stereotype.Service;
-
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 

@@ -40,43 +40,43 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain) throws ServletException, IOException {
 
-        final Cookie jwtToken = CookieUtil.getCookie(httpServletRequest,JwtUtil.ACCESS_TOKEN_NAME);
+        final Cookie jwtToken = CookieUtil.getCookie(httpServletRequest, JwtTokenType.ACCESS.getCookieName());
 
         String username = null;
         String jwt = null;
         String refreshJwt = null;
         String refreshUname = null;
 
-        try{
-            if(jwtToken != null){
+        try {
+            if (jwtToken != null) {
                 jwt = jwtToken.getValue();
                 username = JwtUtil.getUsername(jwt);
             }
-            if(username!=null){
+            if (username != null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                if(JwtUtil.validateToken(jwt,userDetails)){
-                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
+                if (JwtUtil.validateToken(jwt, userDetails)) {
+                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpServletRequest));
                     SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
                 }
             }
-        }catch (ExpiredJwtException e){
-            Cookie refreshToken = CookieUtil.getCookie(httpServletRequest,JwtUtil.REFRESH_TOKEN_NAME);
-            if(refreshToken!=null){
+        } catch (ExpiredJwtException e) {
+            Cookie refreshToken = CookieUtil.getCookie(httpServletRequest, JwtTokenType.REFRESH.getCookieName());
+            if (refreshToken != null) {
                 refreshJwt = refreshToken.getValue();
             }
-        }catch(Exception e){
+        } catch (Exception e) {
 
         }
 
-        try{
-            if(refreshJwt != null){
+        try {
+            if (refreshJwt != null) {
                 refreshUname = redisUtil.getData(refreshJwt);
 
-                if(refreshUname.equals(JwtUtil.getUsername(refreshJwt))){
+                if (refreshUname.equals(JwtUtil.getUsername(refreshJwt))) {
                     UserDetails userDetails = userDetailsService.loadUserByUsername(refreshUname);
-                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
+                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpServletRequest));
                     SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
 
@@ -84,14 +84,14 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                     member.setUsername(refreshUname);
                     String newToken = JwtTokenUtils.generateToken(member.getUsername(), JwtTokenType.REFRESH);
 
-                    Cookie newAccessToken = CookieUtil.createCookie(JwtUtil.ACCESS_TOKEN_NAME,newToken);
+                    Cookie newAccessToken = JwtTokenUtils.createCookie(JwtTokenType.ACCESS, newToken);
                     httpServletResponse.addCookie(newAccessToken);
-                    }
+                }
             }
-        }catch(ExpiredJwtException e){
+        } catch (ExpiredJwtException e) {
 
         }
 
-        filterChain.doFilter(httpServletRequest,httpServletResponse);
+        filterChain.doFilter(httpServletRequest, httpServletResponse);
     }
 }

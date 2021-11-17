@@ -17,6 +17,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
+import javax.servlet.http.Cookie;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Arrays;
@@ -113,4 +114,9 @@ public class JwtTokenUtils {
 
         return new UsernamePasswordAuthenticationToken(userDetails, token, authorities);
     }
+
+    public static Cookie createCookie(JwtTokenType tokenType, String value) {
+        return CookieUtil.createCookie(tokenType.getCookieName(), value);
+    }
+
 }
