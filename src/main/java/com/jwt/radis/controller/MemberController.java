@@ -9,6 +9,7 @@ import com.jwt.radis.utils.CookieUtil;
 import com.jwt.radis.utils.JwtTokenUtils;
 import com.jwt.radis.utils.JwtUtil;
 import com.jwt.radis.utils.RedisUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -20,6 +21,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+@Slf4j
 @Controller
 @RequestMapping("/api")
 public class MemberController {
@@ -30,32 +32,30 @@ public class MemberController {
     @Autowired
     private MemberService memberService;
 
-    @PostMapping("/login")
+    @PostMapping("/authenticate")
     public ResponseEntity login(@RequestBody AuthenticationRequest authenticationRequest,
                                 HttpServletResponse res) {
-        try {
+        final MemberResponse memberResponse = memberService.getSigningUser(authenticationRequest);
 
-            final MemberResponse memberResponse = memberService.getSigningUser(authenticationRequest);
+        final String token = JwtTokenUtils.generateToken(memberResponse.getUsername(), JwtTokenType.ACCESS);
 
-            final String token = JwtTokenUtils.generateToken(memberResponse.getUsername(), JwtTokenType.ACCESS);
+        final String refreshJwt = JwtTokenUtils.generateToken(memberResponse.getUsername(), JwtTokenType.REFRESH);
 
-            final String refreshJwt = JwtTokenUtils.generateToken(memberResponse.getUsername(), JwtTokenType.REFRESH);
+        Cookie accessToken = JwtTokenUtils.createCookie(JwtTokenType.ACCESS, token);
 
-            Cookie accessToken = JwtTokenUtils.createCookie(JwtTokenType.ACCESS, token);
+        Cookie refreshToken = JwtTokenUtils.createCookie(JwtTokenType.REFRESH, refreshJwt);
 
-            Cookie refreshToken = JwtTokenUtils.createCookie(JwtTokenType.REFRESH, refreshJwt);
+        redisUtil.setDataExpire(refreshJwt, memberResponse.getUsername(), JwtTokenType.REFRESH.getValidationSeconds());
 
-            redisUtil.setDataExpire(refreshJwt, memberResponse.getUsername(), JwtUtil.REFRESH_TOKEN_VALIDATION_SECOND);
+        String data = redisUtil.getData(refreshJwt);
 
-            res.addCookie(accessToken);
+        log.info("data {}", data);
 
-            res.addCookie(refreshToken);
+        res.addCookie(accessToken);
 
-            return ResponseEntity.ok(token);
-        } catch (Exception e) {
+        res.addCookie(refreshToken);
 
-            return ResponseEntity.badRequest().build();
-        }
+        return ResponseEntity.ok(token);
     }
 
     @PostMapping("/signup")

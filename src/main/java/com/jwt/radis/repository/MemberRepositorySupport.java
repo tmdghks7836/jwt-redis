@@ -14,7 +14,7 @@ public class MemberRepositorySupport extends QuerydslRepositorySupport {
 
     private final JPAQueryFactory queryFactory;
 
-    QMember qMember;
+    private final QMember qMember = QMember.member;
 
     public MemberRepositorySupport(JPAQueryFactory queryFactory){
         super(Member.class);

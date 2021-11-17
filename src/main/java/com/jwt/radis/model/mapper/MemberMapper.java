@@ -19,6 +19,5 @@ public interface MemberMapper {
 
      MemberResponse modelToDto(Member member);
 
-    Member dtoToModel(MemberCreationRequest member);
 
 }
