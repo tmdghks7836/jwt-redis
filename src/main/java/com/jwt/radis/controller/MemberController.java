@@ -1,6 +1,7 @@
 package com.jwt.radis.controller;
 
 import com.jwt.radis.model.dto.AuthenticationRequest;
+import com.jwt.radis.model.dto.MemberCreationRequest;
 import com.jwt.radis.model.dto.MemberResponse;
 import com.jwt.radis.model.type.JwtTokenType;
 import com.jwt.radis.service.MemberService;
@@ -10,13 +11,17 @@ import com.jwt.radis.utils.JwtUtil;
 import com.jwt.radis.utils.RedisUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+@Controller
+@RequestMapping("/api")
 public class MemberController {
 
     @Autowired
@@ -27,7 +32,6 @@ public class MemberController {
 
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody AuthenticationRequest authenticationRequest,
-                                HttpServletRequest req,
                                 HttpServletResponse res) {
         try {
 
@@ -52,5 +56,13 @@ public class MemberController {
 
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity signUp(@RequestBody MemberCreationRequest memberCreationRequest) {
+
+        memberService.signUp(memberCreationRequest);
+
+        return ResponseEntity.ok().build();
     }
 }

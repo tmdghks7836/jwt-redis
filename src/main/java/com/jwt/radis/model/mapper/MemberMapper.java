@@ -1,5 +1,6 @@
 package com.jwt.radis.model.mapper;
 
+import com.jwt.radis.model.dto.MemberCreationRequest;
 import com.jwt.radis.model.dto.MemberResponse;
 import com.jwt.radis.model.entity.Member;
 import org.mapstruct.Mapper;
@@ -17,5 +18,7 @@ public interface MemberMapper {
 
 
      MemberResponse modelToDto(Member member);
+
+    Member dtoToModel(MemberCreationRequest member);
 
 }

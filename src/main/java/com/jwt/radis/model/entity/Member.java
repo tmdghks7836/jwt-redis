@@ -7,6 +7,8 @@ import lombok.Setter;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -18,12 +20,18 @@ import javax.persistence.Table;
 public class Member {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", length = 50)
     private Long id;
 
-    @Column(name = "username", length = 50)
+    @Column(name = "username", length = 50, unique = true)
     private String username;
 
     @Column(name = "password", length = 200)
     private String password;
+
+    public Member(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
 }

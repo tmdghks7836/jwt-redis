@@ -33,8 +33,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         // Get authorization header and validate
         final String header = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-        log.info("jwt ============> {}", header);
-
         if (isEmpty(header) || !header.startsWith("Bearer ")) {
             chain.doFilter(request, response);
             return;
