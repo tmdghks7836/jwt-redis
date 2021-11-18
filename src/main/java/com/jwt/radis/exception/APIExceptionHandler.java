@@ -8,7 +8,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 @Slf4j
-@RestControllerAdvice(basePackages = "com.skt.our365.home.api")
+@RestControllerAdvice
 public class APIExceptionHandler extends ResponseEntityExceptionHandler {
 
 

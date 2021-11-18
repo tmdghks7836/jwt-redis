@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/api/test/token")
 public class TokenTestController {
 
-    @GetMapping()
+    @GetMapping
     public ResponseEntity test(){
 
         return ResponseEntity.ok().build();

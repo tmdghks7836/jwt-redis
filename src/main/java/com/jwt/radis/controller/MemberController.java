@@ -67,6 +67,12 @@ public class MemberController {
 
         String refreshToken = JwtTokenUtils.findCookie(request, JwtTokenType.REFRESH).getValue();
 
+        String accessToken = JwtTokenUtils.findCookie(request, JwtTokenType.ACCESS).getValue();
+
+        if(!JwtTokenUtils.isTokenExpired(accessToken)){
+            throw new LRuntimeException(ErrorCode.DID_NOT_EXPIRED_TOKEN);
+        }
+
         Long memberIdByRedis = redisUtil.getData(refreshToken);
 
         if (memberIdByRedis == null) {
@@ -81,10 +87,10 @@ public class MemberController {
 
         MemberResponse memberResponse = memberService.getById(memberId);
 
-        final String accessToken = JwtTokenUtils.generateAccessToken(memberResponse);
+        final String generatedAccessToken = JwtTokenUtils.generateAccessToken(memberResponse);
 
-        res.addCookie(JwtTokenUtils.createAccessTokenCookie(accessToken));
+        res.addCookie(JwtTokenUtils.createAccessTokenCookie(generatedAccessToken));
 
-        return ResponseEntity.ok(accessToken);
+        return ResponseEntity.ok(generatedAccessToken);
     }
 }

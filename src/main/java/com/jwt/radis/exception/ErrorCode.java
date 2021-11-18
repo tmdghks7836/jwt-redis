@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum ErrorCode {
 
+    DID_NOT_EXPIRED_TOKEN(HttpStatus.BAD_REQUEST, "CP9992", "아직 만료되지 않은 토큰입니다다."),
     NOT_MATCHED_VALUE(HttpStatus.BAD_REQUEST, "CP9993", "저장된 값과 일지하지 않습니다."),
     REFRESH_TOKEN_EXPIRED(HttpStatus.NOT_FOUND, "CP9994", "이미 만료된 리프레시토큰입니다."),
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "CP9995", "요청한 리소스를 찾을 수 없습니다."),
