@@ -19,6 +19,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.util.StringUtils;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Arrays;
@@ -63,6 +64,7 @@ public class JwtTokenUtils {
         Claims claims = Jwts.claims();
         claims.put("id", registeredUser.getId());
         claims.put("username", registeredUser.getUsername());
+        claims.put("type", tokenType.getCookieName());
 
         log.info(tokenType.getCookieName());
         return generateToken(
@@ -127,8 +129,27 @@ public class JwtTokenUtils {
         return new UsernamePasswordAuthenticationToken(userDetails, token, authorities);
     }
 
+    public static Cookie createRefreshTokenCookie(String value) {
+        return CookieUtil.createCookie(JwtTokenType.REFRESH.getCookieName(), value);
+    }
+
+    public static Cookie createAccessTokenCookie(String value) {
+        return CookieUtil.createCookie(JwtTokenType.ACCESS.getCookieName(), value);
+    }
+
     public static Cookie createCookie(JwtTokenType tokenType, String value) {
         return CookieUtil.createCookie(tokenType.getCookieName(), value);
     }
 
+    public static Cookie findCookie(HttpServletRequest request, JwtTokenType tokenType) {
+        return CookieUtil.getCookie(request, tokenType.getCookieName());
+    }
+
+    public static String generateAccessToken(RegisteredUser registeredUser) {
+        return generateToken(registeredUser, JwtTokenType.ACCESS);
+    }
+
+    public static String generateRefreshToken(RegisteredUser registeredUser) {
+        return generateToken(registeredUser, JwtTokenType.REFRESH);
+    }
 }

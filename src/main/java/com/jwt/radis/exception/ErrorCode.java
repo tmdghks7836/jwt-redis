@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum ErrorCode {
 
+    NOT_MATCHED_VALUE(HttpStatus.BAD_REQUEST, "CP9993", "저장된 값과 일지하지 않습니다."),
+    REFRESH_TOKEN_EXPIRED(HttpStatus.NOT_FOUND, "CP9994", "이미 만료된 리프레시토큰입니다."),
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "CP9995", "요청한 리소스를 찾을 수 없습니다."),
     PAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "CP9996", "요청한 페이지를 찾을 수 없습니다."),
     NOT_MATCHED_PASSWORD(HttpStatus.NOT_FOUND, "CP9997", "패스워드가 맞지 않습니다."),

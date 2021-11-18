@@ -24,7 +24,7 @@ public class MemberService {
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public MemberResponse getSigningUser(AuthenticationRequest authenticationRequest) {
+    public MemberResponse signIn(AuthenticationRequest authenticationRequest) {
 
         Optional<Member> memberOptional = memberRepositorySupport.findByUsername(authenticationRequest.getUsername());
 
@@ -51,5 +51,14 @@ public class MemberService {
         );
 
         memberRepositorySupport.save(member);
+    }
+
+    public MemberResponse getById(Long id){
+
+        Member member = memberRepositorySupport.findById(id)
+                .orElseThrow(() ->
+                        new LRuntimeException(ErrorCode.RESOURCE_NOT_FOUND));
+
+        return MemberMapper.INSTANCE.modelToDto(member);
     }
 }

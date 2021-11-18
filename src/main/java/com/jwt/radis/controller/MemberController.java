@@ -1,5 +1,7 @@
 package com.jwt.radis.controller;
 
+import com.jwt.radis.exception.ErrorCode;
+import com.jwt.radis.exception.LRuntimeException;
 import com.jwt.radis.model.dto.AuthenticationRequest;
 import com.jwt.radis.model.dto.MemberCreationRequest;
 import com.jwt.radis.model.dto.MemberResponse;
@@ -11,11 +13,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @Slf4j
@@ -32,25 +35,21 @@ public class MemberController {
     @PostMapping("/authenticate")
     public ResponseEntity login(@RequestBody AuthenticationRequest authenticationRequest,
                                 HttpServletResponse res) {
-        final MemberResponse memberResponse = memberService.getSigningUser(authenticationRequest);
+        final MemberResponse memberResponse = memberService.signIn(authenticationRequest);
 
         final String token = JwtTokenUtils.generateToken(memberResponse, JwtTokenType.ACCESS);
 
         final String refreshJwt = JwtTokenUtils.generateToken(memberResponse, JwtTokenType.REFRESH);
 
-        Cookie accessToken = JwtTokenUtils.createCookie(JwtTokenType.ACCESS, token);
+        redisUtil.setDataExpire(refreshJwt, memberResponse.getId(), JwtTokenType.REFRESH.getValidationSeconds());
 
-        Cookie refreshToken = JwtTokenUtils.createCookie(JwtTokenType.REFRESH, refreshJwt);
-
-        redisUtil.setDataExpire(refreshJwt, memberResponse.getUsername(), JwtTokenType.REFRESH.getValidationSeconds());
-
-        String data = redisUtil.getData(refreshJwt);
+        Long data = redisUtil.getData(refreshJwt);
 
         log.info("data {}", data);
 
-        res.addCookie(accessToken);
+        res.addCookie(JwtTokenUtils.createCookie(JwtTokenType.ACCESS, token));
 
-        res.addCookie(refreshToken);
+        res.addCookie(JwtTokenUtils.createCookie(JwtTokenType.REFRESH, refreshJwt));
 
         return ResponseEntity.ok(token);
     }
@@ -61,5 +60,31 @@ public class MemberController {
         memberService.signUp(memberCreationRequest);
 
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping(value = "/token", params = "access")
+    public ResponseEntity accessToken(HttpServletRequest request, HttpServletResponse res) {
+
+        String refreshToken = JwtTokenUtils.findCookie(request, JwtTokenType.REFRESH).getValue();
+
+        Long memberIdByRedis = redisUtil.getData(refreshToken);
+
+        if (memberIdByRedis == null) {
+            throw new LRuntimeException(ErrorCode.REFRESH_TOKEN_EXPIRED);
+        }
+
+        Long memberId = JwtTokenUtils.getId(refreshToken);
+
+        if (!memberIdByRedis.equals(memberId)) {
+            throw new LRuntimeException(ErrorCode.NOT_MATCHED_VALUE);
+        }
+
+        MemberResponse memberResponse = memberService.getById(memberId);
+
+        final String accessToken = JwtTokenUtils.generateAccessToken(memberResponse);
+
+        res.addCookie(JwtTokenUtils.createAccessTokenCookie(accessToken));
+
+        return ResponseEntity.ok(accessToken);
     }
 }
