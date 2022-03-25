@@ -26,7 +26,6 @@ public class APIExceptionHandler {
         return ResponseEntity
                 .status(httpStatus)
                 .body(ErrorResponse.builder()
-                        .status(httpStatus.value())
                         .error(httpStatus.name())
                         .build()
                 );
@@ -58,7 +57,6 @@ public class APIExceptionHandler {
         return ResponseEntity
                 .status(badRequest)
                 .body(ErrorResponse.builder()
-                        .status(badRequest.value())
                         .error(badRequest.name())
                         .message(builder.toString())
                         .build()

@@ -17,7 +17,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableSwagger2
 public class SwaggerConfig {
 
-    private static final String API_NAME = "삼쩜삼 API";
+    private static final String API_NAME = "3.3 API";
     private static final String API_VERSION = "V1";
     private static final String API_DESCRIPTION = "유저, 환급액 조회";
 
