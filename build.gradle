@@ -29,6 +29,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation group: 'it.ozimov', name: 'embedded-redis', version: '0.7.1'
     implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.2'
     runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.2'
     runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.2'
@@ -37,6 +39,8 @@ dependencies {
     runtimeOnly 'com.h2database:h2'
     implementation 'org.mapstruct:mapstruct:1.4.1.Final'
     compileOnly('org.mapstruct:mapstruct-processor:1.4.1.Final')
+    compile group: 'io.springfox', name: 'springfox-swagger2', version: '2.9.2'
+    compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.2'
     annotationProcessor('org.mapstruct:mapstruct-processor:1.4.1.Final')
 }
 
