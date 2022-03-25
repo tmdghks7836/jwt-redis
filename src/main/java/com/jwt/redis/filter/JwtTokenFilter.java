@@ -24,7 +24,7 @@ import static java.util.Optional.ofNullable;
 
 @RequiredArgsConstructor
 @Slf4j
-public class JwtTokenCookieFilter extends OncePerRequestFilter {
+public class JwtTokenFilter extends OncePerRequestFilter {
 
     private final CheckJwtTokenStrategy checkJwtTokenStrategy;
 

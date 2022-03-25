@@ -2,7 +2,7 @@ package com.jwt.redis.config;
 
 import com.jwt.redis.exception.handler.JwtAccessDeniedHandler;
 import com.jwt.redis.exception.handler.JwtAuthenticationEntryPoint;
-import com.jwt.redis.filter.JwtTokenCookieFilter;
+import com.jwt.redis.filter.JwtTokenFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -21,7 +21,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
-    private final JwtTokenCookieFilter jwtTokenCookieFilter;
+    private final JwtTokenFilter jwtTokenFilter;
 
     @Override
     public void configure(WebSecurity web) {
@@ -63,7 +63,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(swaggerPathToAllow()).permitAll()
                 .anyRequest().authenticated()
                 .and()
-                .addFilterBefore(jwtTokenCookieFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
     private String[] apiPathToAllow() {
