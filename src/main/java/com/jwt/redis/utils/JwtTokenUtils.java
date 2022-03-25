@@ -130,11 +130,21 @@ public class JwtTokenUtils {
     }
 
     public static Cookie createRefreshTokenCookie(String value) {
-        return CookieUtil.createCookie(JwtTokenType.REFRESH.getCookieName(), value);
+
+        JwtTokenType token = JwtTokenType.REFRESH;
+        return CookieUtil.createCookie(
+                token.getCookieName(),
+                value,
+                token.getValidationSeconds());
     }
 
     public static Cookie createAccessTokenCookie(String value) {
-        return CookieUtil.createCookie(JwtTokenType.ACCESS.getCookieName(), value);
+
+        JwtTokenType token = JwtTokenType.ACCESS;
+        return CookieUtil.createCookie(
+                token.getCookieName(),
+                value,
+                token.getValidationSeconds());
     }
 
     public static Cookie createCookie(JwtTokenType tokenType, String value) {

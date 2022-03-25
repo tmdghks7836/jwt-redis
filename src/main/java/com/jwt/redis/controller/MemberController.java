@@ -47,9 +47,9 @@ public class MemberController {
 
         log.info("data {}", data);
 
-        res.addCookie(JwtTokenUtils.createCookie(JwtTokenType.ACCESS, token));
+        res.addCookie(JwtTokenUtils.createAccessTokenCookie(token));
 
-        res.addCookie(JwtTokenUtils.createCookie(JwtTokenType.REFRESH, refreshJwt));
+        res.addCookie(JwtTokenUtils.createRefreshTokenCookie(refreshJwt));
 
         return ResponseEntity.ok(token);
     }
