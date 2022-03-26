@@ -1,6 +1,10 @@
 package com.jwt.redis.model.type;
 
+import com.jwt.redis.exception.ResourceNotFoundException;
+import javassist.NotFoundException;
 import lombok.Getter;
+
+import java.util.Arrays;
 
 @Getter
 public enum JwtTokenType {
@@ -13,5 +17,13 @@ public enum JwtTokenType {
     JwtTokenType(String cookieName, int validationSeconds) {
         this.validationSeconds = validationSeconds;
         this.cookieName = cookieName;
+    }
+
+    public static JwtTokenType findByCookieName(String cookieName){
+
+        return Arrays.stream(JwtTokenType.values())
+                .filter(jwtTokenType -> jwtTokenType.getCookieName().equals(cookieName))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException());
     }
 }

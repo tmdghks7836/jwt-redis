@@ -1,18 +1,20 @@
 package com.jwt.redis.model.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+
+import javax.validation.constraints.NotEmpty;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class MemberCreationRequest {
 
+    @NotEmpty
     private String username;
 
+    @NotEmpty
     private String password;
 
 }

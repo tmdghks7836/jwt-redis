@@ -27,6 +27,6 @@ public class CustomUserDetailsService implements UserDetailsService {
         }
 
         Member member = memberOptional.get();
-        return new UserDetailsImpl(member.getId(), member.getUsername());
+        return new UserDetailsImpl(member.getId(), member.getUsername(), member.getPassword());
     }
 }

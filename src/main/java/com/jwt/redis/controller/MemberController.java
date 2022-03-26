@@ -13,11 +13,14 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 
 @Slf4j
 @RestController
@@ -30,37 +33,20 @@ public class MemberController {
 
     private final MemberService memberService;
 
-    @PostMapping("/authenticate")
+    @PostMapping(value = "/authenticate")
     @ApiOperation(value = "로그인")
-    public ResponseEntity login(@RequestBody AuthenticationRequest authenticationRequest,
-                                HttpServletResponse res) {
+    public ResponseEntity login(@RequestBody AuthenticationRequest authenticationRequest) {
 
-        final MemberResponse memberResponse = memberService.authenticate(authenticationRequest);
-
-        final String token = JwtTokenUtils.generateToken(memberResponse, JwtTokenType.ACCESS);
-
-        final String refreshJwt = JwtTokenUtils.generateToken(memberResponse, JwtTokenType.REFRESH);
-
-        redisUtil.setDataContainsExpire(refreshJwt, memberResponse.getId(), JwtTokenType.REFRESH.getValidationSeconds());
-
-        Long data = redisUtil.getData(refreshJwt);
-
-        log.info("data {}", data);
-
-        res.addCookie(JwtTokenUtils.createAccessTokenCookie(token));
-
-        res.addCookie(JwtTokenUtils.createRefreshTokenCookie(refreshJwt));
-
-        return ResponseEntity.ok(token);
+        log.info("spring security 에서 login 인증기능을 담당합니다.");
+        return null;
     }
 
     @PostMapping("/join")
     @ApiOperation(value = "회원가입")
-    public ResponseEntity signUp(@RequestBody MemberCreationRequest memberCreationRequest) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public void join(@RequestBody @Valid MemberCreationRequest memberCreationRequest) {
 
         memberService.join(memberCreationRequest);
-
-        return ResponseEntity.ok().build();
     }
 
     @GetMapping(value = "/token/re-issuance")

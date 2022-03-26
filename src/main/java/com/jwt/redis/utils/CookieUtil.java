@@ -1,7 +1,5 @@
 package com.jwt.redis.utils;
 
-import com.jwt.redis.model.type.JwtTokenType;
-
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 

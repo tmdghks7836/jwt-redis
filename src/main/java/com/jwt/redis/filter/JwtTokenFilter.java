@@ -32,16 +32,18 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
+        log.info("JwtTokenFilter.");
+
         String token = checkJwtTokenStrategy.getTokenByRequest(request);
 
-        if (StringUtils.hasText(token)) {
-            authenticate(token);
+        if (StringUtils.hasText(token) && JwtTokenUtils.validate(token)) {
+            authorization(token);
         }
 
         chain.doFilter(request, response);
     }
 
-    private void authenticate(String token) {
+    private void authorization(String token) {
 
         // Get user identity and set it on the spring security context
         UserDetailsImpl userDetails = new UserDetailsImpl(
@@ -58,6 +60,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 userDetails, null,
                 ofNullable(userDetails).map(UserDetails::getAuthorities).orElse(Collections.emptyList())
         );
+
+        authentication.setDetails(userDetails);
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }

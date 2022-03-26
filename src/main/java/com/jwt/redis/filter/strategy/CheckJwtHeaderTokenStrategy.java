@@ -22,10 +22,6 @@ public class CheckJwtHeaderTokenStrategy implements CheckJwtTokenStrategy {
 
         final String token = header.split(" ")[1].trim();
 
-        if (!JwtTokenUtils.validate(token)) {
-            return null;
-        }
-
         return token;
     }
 }

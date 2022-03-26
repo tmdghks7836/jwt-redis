@@ -23,9 +23,17 @@ public class UserDetailsImpl implements UserDetails {
 
     private boolean enabled = true;
 
+    //인가 플로우일때 생성
     public UserDetailsImpl(Long id, String username) {
         this.id = id;
         this.username = username;
+    }
+
+    //인증 플로우일때 생성
+    public UserDetailsImpl(Long id, String username, String password) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
     }
 
     @Override

@@ -3,17 +3,13 @@ package com.jwt.redis.utils;
 import com.jwt.redis.model.base.RegisteredUser;
 import com.jwt.redis.model.dto.UserDetailsImpl;
 import com.jwt.redis.model.type.JwtTokenType;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.SignatureException;
-import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.util.StringUtils;
@@ -40,6 +36,13 @@ public class JwtTokenUtils {
 
     public static Long getId(String token) {
         return extractAllClaims(token).get("id", Long.class);
+    }
+
+    public static JwtTokenType getTokenType(String token) {
+
+        String type = extractAllClaims(token).get("type", String.class);
+
+        return JwtTokenType.findByCookieName(type);
     }
 
     public static String[] getRoles(String token) {
@@ -90,10 +93,7 @@ public class JwtTokenUtils {
 
     public static boolean validate(String token) {
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
-                    .build()
-                    .parseClaimsJws(token);
+            parseClaims(token);
             return true;
         } catch (SignatureException ex) {
             log.error("Invalid JWT signature - {}", ex.getMessage());
@@ -105,16 +105,26 @@ public class JwtTokenUtils {
             log.error("Unsupported JWT token - {}", ex.getMessage());
         } catch (IllegalArgumentException ex) {
             log.error("JWT claims string is empty - {}", ex.getMessage());
+        } catch (JwtException ex){
+            log.error("JWT error - {}", ex.getMessage());
         }
         return false;
     }
 
-    public static Claims extractAllClaims(String token) throws ExpiredJwtException {
+    /**
+     * 사용하기 전 반드시 토큰 검증해야 합니다.
+     * */
+    public static Claims extractAllClaims(String token) {
+
+        return parseClaims(token).getBody();
+    }
+
+    private static Jws<Claims> parseClaims(String token){
+
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseClaimsJws(token);
     }
 
     public Authentication getAuthentication(String token) {
@@ -131,20 +141,29 @@ public class JwtTokenUtils {
 
     public static Cookie createRefreshTokenCookie(String value) {
 
-        JwtTokenType token = JwtTokenType.REFRESH;
+        JwtTokenType tokenType = getTokenType(value);
+
+        if(!tokenType.equals(JwtTokenType.REFRESH)){
+            throw new BadCredentialsException("did not match token Type");
+        }
         return CookieUtil.createCookie(
-                token.getCookieName(),
+                tokenType.getCookieName(),
                 value,
-                token.getValidationSeconds());
+                tokenType.getValidationSeconds());
     }
 
     public static Cookie createAccessTokenCookie(String value) {
 
-        JwtTokenType token = JwtTokenType.ACCESS;
+        JwtTokenType tokenType = getTokenType(value);
+
+        if(!tokenType.equals(JwtTokenType.ACCESS)){
+            throw new BadCredentialsException("did not match token Type");
+        }
+
         return CookieUtil.createCookie(
-                token.getCookieName(),
+                tokenType.getCookieName(),
                 value,
-                token.getValidationSeconds());
+                tokenType.getValidationSeconds());
     }
 
     public static Cookie createCookie(JwtTokenType tokenType, String value) {

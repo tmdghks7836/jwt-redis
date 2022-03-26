@@ -1,15 +1,19 @@
 package com.jwt.redis.config;
 
+import com.jwt.redis.exception.handler.CustomAuthenticationFailureHandler;
 import com.jwt.redis.exception.handler.JwtAccessDeniedHandler;
 import com.jwt.redis.exception.handler.JwtAuthenticationEntryPoint;
+import com.jwt.redis.filter.CustomAuthenticationFilter;
 import com.jwt.redis.filter.JwtTokenFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @EnableWebSecurity
@@ -23,13 +27,24 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final JwtTokenFilter jwtTokenFilter;
 
+    private final CustomAuthenticationFailureHandler authenticationFailureHandler;
+
+    // 커스텀 인증 필터
+    @Bean
+    public CustomAuthenticationFilter customAuthenticationProcessingFilter() throws Exception {
+        CustomAuthenticationFilter filter = new CustomAuthenticationFilter("/api/v1/members/authenticate");
+        filter.setAuthenticationManager(authenticationManager());
+        filter.setAuthenticationFailureHandler(authenticationFailureHandler);
+        return filter;
+    }
+
     @Override
     public void configure(WebSecurity web) {
         web.ignoring()
                 .antMatchers(
-                        "/h2-console/**"
-                        , "/favicon.ico"
-                        , "/error"
+                        "/h2-console/**", "/favicon.ico", "/error"
+                        , "/csrf", "/v2/api-docs", "/configuration/**",
+                        "/swagger*/**", "/webjars/**"
                 );
     }
 
@@ -40,10 +55,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         httpSecurity
                 // token을 사용하는 방식이기 때문에 csrf를 disable합니다.
                 .csrf().disable()
-                .cors().and()
-                .exceptionHandling()
-                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                .accessDeniedHandler(jwtAccessDeniedHandler)
+                .cors()
 
                 // enable h2-console
                 .and()
@@ -60,10 +72,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/").permitAll()
                 .antMatchers(apiPathToAllow()).permitAll()
-                .antMatchers(swaggerPathToAllow()).permitAll()
                 .anyRequest().authenticated()
                 .and()
-                .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(customAuthenticationProcessingFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtTokenFilter, CustomAuthenticationFilter.class)
+                .exceptionHandling()
+                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                .accessDeniedHandler(jwtAccessDeniedHandler);
     }
 
     private String[] apiPathToAllow() {
@@ -71,12 +86,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         String apiV1Path = "/api/v1/";
         return new String[]{
                 apiV1Path + "members/authenticate",
-                apiV1Path + "members/join"
+                apiV1Path + "members/join",
+                apiV1Path + "members/re-issuance",
         };
-    }
-
-    private String[] swaggerPathToAllow() {
-        return new String[]{"/v2/api-docs", "/configuration/**",
-                "/swagger*/**", "/webjars/**"};
     }
 }

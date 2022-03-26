@@ -1,4 +1,10 @@
 spring:
+  profiles:
+    active: local
+
+---
+
+spring:
   cache:
     type: redis
   redis:
@@ -6,8 +12,7 @@ spring:
     port: 6379
 
 
-  profiles:
-    active: local
+  profiles: local
 
   datasource:
     url: jdbc:h2:mem:rcdb

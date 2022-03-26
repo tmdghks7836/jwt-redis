@@ -9,6 +9,9 @@ import com.jwt.redis.model.entity.Member;
 import com.jwt.redis.model.mapper.MemberMapper;
 import com.jwt.redis.repository.MemberRepositorySupport;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,18 +27,18 @@ public class MemberService {
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public MemberResponse authenticate(AuthenticationRequest authenticationRequest) {
+    public MemberResponse authenticate(String username, String password) {
 
-        Optional<Member> memberOptional = memberRepositorySupport.findByUsername(authenticationRequest.getUsername());
+        Optional<Member> memberOptional = memberRepositorySupport.findByUsername(username);
 
         if (!memberOptional.isPresent()) {
-            throw new CustomRuntimeException(ErrorCode.RESOURCE_NOT_FOUND);
+            throw new UsernameNotFoundException(username +" not found");
         }
 
         Member member = memberOptional.get();
 
-        if (!bCryptPasswordEncoder.matches(authenticationRequest.getPassword(), member.getPassword())) {
-            throw new CustomRuntimeException(ErrorCode.NOT_MATCHED_PASSWORD);
+        if (!bCryptPasswordEncoder.matches(password, member.getPassword())) {
+            throw new BadCredentialsException(ErrorCode.NOT_MATCHED_PASSWORD.getDescription());
         }
 
         return MemberMapper.INSTANCE.modelToDto(member);

@@ -1,9 +1,7 @@
 package com.jwt.redis.exception;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
@@ -12,13 +10,15 @@ import java.time.LocalDateTime;
 @Getter
 @ToString
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorResponse {
-    private final String timestamp = LocalDateTime.now().toString();
-    private final String error;
-    private final String code;
-    private final String message;
-    private final String reason;
+    private String timestamp = LocalDateTime.now().toString();
+    private String error;
+    private String code;
+    private String message;
+    private String reason;
 
     public static ErrorResponse getByErrorCode(ErrorCode errorCode) {
 

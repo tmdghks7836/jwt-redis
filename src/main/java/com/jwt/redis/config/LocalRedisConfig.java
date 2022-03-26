@@ -11,7 +11,6 @@ import javax.annotation.PreDestroy;
 import java.io.IOException;
 
 @Slf4j
-@Profile("local")
 @Configuration
 public class LocalRedisConfig {
 
@@ -23,6 +22,7 @@ public class LocalRedisConfig {
     @PostConstruct
     public void redisServer() throws IOException {
         redisServer = new RedisServer(redisPort);
+        log.info("redis start : port {} ", redisPort);
         redisServer.start();
     }
 

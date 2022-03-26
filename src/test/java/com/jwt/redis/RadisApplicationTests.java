@@ -11,10 +11,5 @@ class RadisApplicationTests {
 	@Autowired
 	private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-	@Test
-	void contextLoads() {
-
-		System.out.println(bCryptPasswordEncoder.encode("vkfl4521687!"));
-	}
 
 }
