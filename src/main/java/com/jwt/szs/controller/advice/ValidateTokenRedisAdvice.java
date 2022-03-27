@@ -20,15 +20,13 @@ public class ValidateTokenRedisAdvice implements MethodInterceptor {
 
     private final RedisUtil redisUtil;
 
-    private final HttpServletRequest request;
+    private final String refreshToken;
 
     @Nullable
     @Override
     public Object invoke(@Nonnull MethodInvocation invocation) throws Throwable {
 
         log.info("리프레시 토큰의 만료기한과 redis에 저장된 토큰값을 확인합니다.");
-
-        String refreshToken = JwtTokenUtils.findCookie(request, JwtTokenType.REFRESH).getValue();
 
         Long memberIdByRedis = redisUtil.<Long>getData(refreshToken)
                 .orElseThrow(() -> new CustomRuntimeException(ErrorCode.REFRESH_TOKEN_EXPIRED));
@@ -39,8 +37,6 @@ public class ValidateTokenRedisAdvice implements MethodInterceptor {
             throw new CustomRuntimeException(ErrorCode.NOT_MATCHED_VALUE);
         }
 
-        Object result = invocation.proceed();
-
-        return result;
+        return invocation.proceed();
     }
 }

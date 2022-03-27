@@ -58,14 +58,16 @@ public class MemberController {
     @ApiOperation(value = "access token 재발급")
     public ResponseEntity accessToken(HttpServletRequest request, HttpServletResponse res) {
 
+        String refreshToken = JwtTokenUtils.findCookie(request, JwtTokenType.REFRESH).getValue();
+        String accessToken = jwtTokenStrategy.getTokenByRequest(request);
+
         ProxyFactory proxyFactory = new ProxyFactory(jwtTokenService); //프록시 팩토리에 원하는 클래스를 주입
-        proxyFactory.addAdvice(new ValidateAccessTokenAdvice(jwtTokenStrategy, request)); // 공통으로 실행할 advice 객체 주입
-        proxyFactory.addAdvice(new ValidateTokenRedisAdvice(redisUtil, request));
+        proxyFactory.addAdvice(new ValidateAccessTokenAdvice(accessToken)); // 공통으로 실행할 advice 객체 주입
+        proxyFactory.addAdvice(new ValidateTokenRedisAdvice(redisUtil, refreshToken));
         JwtTokenService proxy = (JwtTokenService) proxyFactory.getProxy();
 
-        String refreshToken = JwtTokenUtils.findCookie(request, JwtTokenType.REFRESH).getValue();
-        String token = proxy.ReIssuanceAccessToken(refreshToken);
+        String reIssuanceAccessToken = proxy.ReIssuanceAccessToken(refreshToken);
 
-        return ResponseEntity.ok(token);
+        return ResponseEntity.ok(reIssuanceAccessToken);
     }
 }
