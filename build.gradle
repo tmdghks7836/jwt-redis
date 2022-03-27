@@ -39,8 +39,7 @@ dependencies {
     runtimeOnly 'com.h2database:h2'
     implementation 'org.mapstruct:mapstruct:1.4.1.Final'
     compileOnly('org.mapstruct:mapstruct-processor:1.4.1.Final')
-    compile group: 'io.springfox', name: 'springfox-swagger2', version: '2.9.2'
-    compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.2'
+    implementation "io.springfox:springfox-boot-starter:3.0.0"
     annotationProcessor('org.mapstruct:mapstruct-processor:1.4.1.Final')
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     // https://mvnrepository.com/artifact/com.squareup.retrofit2/converter-gson

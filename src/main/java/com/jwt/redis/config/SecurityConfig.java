@@ -44,7 +44,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         web.ignoring()
                 .antMatchers(
                         "/h2-console/**", "/favicon.ico", "/error"
-                        , "/csrf", "/v2/api-docs", "/configuration/**",
+                        , "/csrf", "/v3/api-docs", "/configuration/**",
                         "/swagger*/**", "/webjars/**"
                 );
     }
