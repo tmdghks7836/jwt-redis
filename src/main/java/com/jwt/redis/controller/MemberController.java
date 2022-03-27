@@ -2,7 +2,9 @@ package com.jwt.redis.controller;
 
 import com.jwt.redis.exception.CustomRuntimeException;
 import com.jwt.redis.exception.ErrorCode;
+import com.jwt.redis.filter.strategy.CheckJwtTokenStrategy;
 import com.jwt.redis.model.dto.AuthenticationRequest;
+import com.jwt.redis.model.dto.AuthenticationUserPrinciple;
 import com.jwt.redis.model.dto.MemberCreationRequest;
 import com.jwt.redis.model.dto.MemberResponse;
 import com.jwt.redis.model.type.JwtTokenType;
@@ -15,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -32,6 +34,8 @@ public class MemberController {
     private final RedisUtil redisUtil;
 
     private final MemberService memberService;
+
+    private final CheckJwtTokenStrategy jwtTokenStrategy;
 
     @PostMapping(value = "/authenticate")
     @ApiOperation(value = "로그인")
@@ -55,9 +59,9 @@ public class MemberController {
 
         String refreshToken = JwtTokenUtils.findCookie(request, JwtTokenType.REFRESH).getValue();
 
-        String accessToken = JwtTokenUtils.findCookie(request, JwtTokenType.ACCESS).getValue();
+        String token = jwtTokenStrategy.getTokenByRequest(request);
 
-        if (!JwtTokenUtils.isTokenExpired(accessToken)) {
+        if (!JwtTokenUtils.isTokenExpired(token)) {
             throw new CustomRuntimeException(ErrorCode.NOT_YET_EXPIRED_TOKEN);
         }
 

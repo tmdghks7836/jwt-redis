@@ -45,7 +45,7 @@ public class MemberService {
     }
 
     @Transactional
-    public void join(MemberCreationRequest memberCreationRequest) {
+    public Long join(MemberCreationRequest memberCreationRequest) {
 
         Member member = new Member(
                 memberCreationRequest.getUsername(),
@@ -53,6 +53,8 @@ public class MemberService {
         );
 
         memberRepositorySupport.save(member);
+
+        return member.getId();
     }
 
     public MemberResponse getById(Long id){

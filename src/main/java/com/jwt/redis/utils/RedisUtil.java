@@ -1,7 +1,6 @@
 package com.jwt.redis.utils;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Component;
@@ -24,7 +23,7 @@ public class RedisUtil {
         valueOperations.set(key, value);
     }
 
-    public void setDataContainsExpire(String key, Object value, long duration) {
+    public void setDataContainsExpireDate(String key, Object value, long duration) {
         ValueOperations<Object, Object> valueOperations = redisTemplate.opsForValue();
         Duration expireDuration = Duration.ofSeconds(duration);
         valueOperations.set(key, value, expireDuration);

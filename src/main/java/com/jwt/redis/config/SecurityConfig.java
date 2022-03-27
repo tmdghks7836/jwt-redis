@@ -1,8 +1,9 @@
 package com.jwt.redis.config;
 
-import com.jwt.redis.exception.handler.CustomAuthenticationFailureHandler;
-import com.jwt.redis.exception.handler.JwtAccessDeniedHandler;
-import com.jwt.redis.exception.handler.JwtAuthenticationEntryPoint;
+import com.jwt.redis.handler.CustomAuthenticationFailureHandler;
+import com.jwt.redis.handler.CustomAuthenticationSuccessHandler;
+import com.jwt.redis.handler.JwtAccessDeniedHandler;
+import com.jwt.redis.handler.JwtAuthenticationEntryPoint;
 import com.jwt.redis.filter.CustomAuthenticationFilter;
 import com.jwt.redis.filter.JwtTokenFilter;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,6 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @EnableWebSecurity
@@ -23,11 +23,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
-    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
-
     private final JwtTokenFilter jwtTokenFilter;
 
     private final CustomAuthenticationFailureHandler authenticationFailureHandler;
+
+    private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
 
     // 커스텀 인증 필터
     @Bean
@@ -35,6 +35,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         CustomAuthenticationFilter filter = new CustomAuthenticationFilter("/api/v1/members/authenticate");
         filter.setAuthenticationManager(authenticationManager());
         filter.setAuthenticationFailureHandler(authenticationFailureHandler);
+        filter.setAuthenticationSuccessHandler(customAuthenticationSuccessHandler);
         return filter;
     }
 
@@ -56,15 +57,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // token을 사용하는 방식이기 때문에 csrf를 disable합니다.
                 .csrf().disable()
                 .cors()
-
-                // enable h2-console
                 .and()
-                .headers()
-                .frameOptions()
-                .sameOrigin()
-
+                .formLogin().disable()
                 // 세션을 사용하지 않기 때문에 STATELESS로 설정
-                .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 
@@ -77,8 +72,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilterBefore(customAuthenticationProcessingFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtTokenFilter, CustomAuthenticationFilter.class)
                 .exceptionHandling()
-                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                .accessDeniedHandler(jwtAccessDeniedHandler);
+                .authenticationEntryPoint(jwtAuthenticationEntryPoint);
     }
 
     private String[] apiPathToAllow() {
@@ -87,7 +81,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new String[]{
                 apiV1Path + "members/authenticate",
                 apiV1Path + "members/join",
-                apiV1Path + "members/re-issuance",
+                apiV1Path + "members/token/re-issuance",
         };
     }
 }

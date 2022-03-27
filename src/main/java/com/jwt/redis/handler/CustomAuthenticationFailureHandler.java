@@ -1,4 +1,4 @@
-package com.jwt.redis.exception.handler;
+package com.jwt.redis.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jwt.redis.exception.ErrorCode;
@@ -6,6 +6,7 @@ import com.jwt.redis.exception.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
@@ -25,13 +26,14 @@ public class CustomAuthenticationFailureHandler implements AuthenticationFailure
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException, IOException {
 
-        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        ErrorCode errorCode = ErrorCode.AUTHENTICATION_FAIL;
+
+        response.setStatus(errorCode.getHttpStatus().value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.getOutputStream()
                 .write(objectMapper.writeValueAsString(
-                                ErrorResponse.getByErrorCode(ErrorCode.AUTHENTICATION_FAIL)
+                                ErrorResponse.getByErrorCode(errorCode, exception.getMessage())
                         ).getBytes(StandardCharsets.UTF_8)
                 );
-
     }
 }

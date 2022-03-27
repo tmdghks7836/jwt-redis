@@ -14,5 +14,4 @@ public class MemberResponse implements RegisteredUser {
 
     private String username;
 
-    private String password;
 }

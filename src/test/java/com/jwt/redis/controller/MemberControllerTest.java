@@ -10,11 +10,16 @@ import com.jwt.redis.model.dto.AuthenticationRequest;
 import com.jwt.redis.model.dto.MemberCreationRequest;
 import com.jwt.redis.model.dto.MemberResponse;
 import com.jwt.redis.model.type.JwtTokenType;
+import com.jwt.redis.service.MemberService;
 import com.jwt.redis.utils.JwtTokenUtils;
+import com.jwt.redis.utils.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -27,7 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import javax.servlet.http.Cookie;
-import java.util.Arrays;
+import java.util.HashMap;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -40,7 +45,14 @@ class MemberControllerTest {
     @Autowired
     private WebApplicationContext context;
 
+    @Autowired
+    private RedisUtil redisUtil;
+
+    @Autowired
+    private MemberService memberService;
+
     private MockMvc mockMvc;
+
 
     @BeforeEach
     void setUp() {
@@ -92,26 +104,24 @@ class MemberControllerTest {
         MvcResult mvcResult = mockMvc.perform(post("/api/v1/members/authenticate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
-                .andExpect(MockMvcResultMatchers.status().isFound())
+                .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn();
 
-        Cookie[] cookies = mvcResult.getResponse().getCookies();
+        ObjectMapper objectMapper = new ObjectMapper();
+        HashMap<String, String> hashMap = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), HashMap.class);
 
-        Cookie accessTokenCookie = Arrays.stream(cookies)
-                .filter(cookie -> cookie.getName().equals("accessToken"))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("토큰 발급에 실패하였습니다."));
+        String token = hashMap.get("token");
 
-        Assertions.assertTrue(JwtTokenUtils.validate(accessTokenCookie.getValue()));
+        Assertions.assertTrue(JwtTokenUtils.validate(token));
     }
 
     @Test
     public void 토큰검증() throws Exception {
 
-        Cookie accessTokenCookie = generateAccessTokenCookie();
+        String token = generateAccessToken();
 
         mockMvc.perform(get("/api/test/token")
-                        .cookie(accessTokenCookie)
+                        .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn();
@@ -127,13 +137,37 @@ class MemberControllerTest {
     }
 
     @Test
+    public void 토큰재발급() throws Exception {
+
+        String username = "tmdghks";
+        String password = "123";
+        Long registeredId = memberService.join(new MemberCreationRequest(username, password));
+
+        String token = generateExpiredAccessToken(new MemberResponse(registeredId, username));
+
+        Cookie refreshTokenCookie = generateRefreshTokenCookie();
+        redisUtil.setDataContainsExpireDate(refreshTokenCookie.getValue(),
+                registeredId, JwtTokenType.REFRESH.getValidationSeconds());
+
+        MvcResult mvcResult = mockMvc.perform(get("/api/v1/members/token/re-issuance")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + token)
+                        .cookie(refreshTokenCookie))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+
+        log.info("액세스 토큰재발급 response : {}", mvcResult.getResponse().getContentAsString());
+    }
+
+    @Test
     public void 토큰재발급_실패_만료되지않은_액세스토큰() throws Exception {
 
-        Cookie accessTokenCookie = generateAccessTokenCookie();
+        String token = generateAccessToken();
         Cookie refreshTokenCookie = generateRefreshTokenCookie();
         MvcResult mvcResult = mockMvc.perform(get("/api/v1/members/token/re-issuance")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .cookie(accessTokenCookie, refreshTokenCookie))
+                        .header("Authorization", "Bearer " + token)
+                        .cookie(refreshTokenCookie))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andReturn();
 
@@ -159,16 +193,20 @@ class MemberControllerTest {
         return gson.toJson(request);
     }
 
-    private Cookie generateAccessTokenCookie() {
+    private String generateAccessToken() {
 
-        MemberResponse memberResponse = MemberResponse.builder().id(1l).username("tmdghks").password("123").build();
-        final String token = JwtTokenUtils.generateToken(memberResponse, JwtTokenType.ACCESS);
-        return JwtTokenUtils.createAccessTokenCookie(token);
+        MemberResponse memberResponse = MemberResponse.builder().id(1l).username("tmdghks").build();
+        return JwtTokenUtils.generateToken(memberResponse, JwtTokenType.ACCESS);
+    }
+
+    private String generateExpiredAccessToken(MemberResponse memberResponse) {
+
+        return JwtTokenUtils.generateToken(memberResponse, JwtTokenType.ACCESS, -1l);
     }
 
     private Cookie generateRefreshTokenCookie() {
 
-        MemberResponse memberResponse = MemberResponse.builder().id(1l).username("tmdghks").password("123").build();
+        MemberResponse memberResponse = MemberResponse.builder().id(1l).username("tmdghks").build();
         final String token = JwtTokenUtils.generateToken(memberResponse, JwtTokenType.REFRESH);
         return JwtTokenUtils.createRefreshTokenCookie(token);
     }

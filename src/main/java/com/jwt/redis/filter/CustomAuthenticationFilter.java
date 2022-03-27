@@ -2,17 +2,15 @@ package com.jwt.redis.filter;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.jwt.redis.filter.strategy.CheckJwtTokenStrategy;
 import com.jwt.redis.model.dto.MemberResponse;
 import com.jwt.redis.model.type.JwtTokenType;
 import com.jwt.redis.service.MemberService;
 import com.jwt.redis.utils.HttpUtils;
 import com.jwt.redis.utils.JwtTokenUtils;
 import com.jwt.redis.utils.RedisUtil;
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -32,13 +30,15 @@ public class CustomAuthenticationFilter extends AbstractAuthenticationProcessing
     @Autowired
     private MemberService memberService;
 
+    @Autowired
+    private CheckJwtTokenStrategy jwtTokenStrategy;
+
     public CustomAuthenticationFilter(String defaultFilterProcessesUrl) {
         super(defaultFilterProcessesUrl);
     }
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, ServletException, IOException {
-
 
         String body = HttpUtils.getBody(request);
 
@@ -52,13 +52,13 @@ public class CustomAuthenticationFilter extends AbstractAuthenticationProcessing
 
         final String refreshJwt = JwtTokenUtils.generateToken(memberResponse, JwtTokenType.REFRESH);
 
-        redisUtil.setDataContainsExpire(refreshJwt, memberResponse.getId(), JwtTokenType.REFRESH.getValidationSeconds());
+        redisUtil.setDataContainsExpireDate(refreshJwt, memberResponse.getId(), JwtTokenType.REFRESH.getValidationSeconds());
 
         Long data = redisUtil.getData(refreshJwt);
 
         log.info("data {}", data);
 
-        response.addCookie(JwtTokenUtils.createAccessTokenCookie(token));
+        request.setAttribute("authenticationToken", token);
 
         response.addCookie(JwtTokenUtils.createRefreshTokenCookie(refreshJwt));
 

@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorResponse {
-    private String timestamp = LocalDateTime.now().toString();
+    private String timestamp;
     private String error;
     private String code;
     private String message;
@@ -28,6 +28,7 @@ public class ErrorResponse {
     public static ErrorResponse getByErrorCode(ErrorCode errorCode, String reason) {
 
         return ErrorResponse.builder()
+                .timestamp(LocalDateTime.now().toString())
                 .error(errorCode.getHttpStatus().name())
                 .code(errorCode.getCode())
                 .message(errorCode.getDescription())

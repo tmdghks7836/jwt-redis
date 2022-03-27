@@ -12,9 +12,8 @@ public enum ErrorCode {
 
     NOT_YET_EXPIRED_TOKEN(HttpStatus.BAD_REQUEST, "E0001", "아직 만료되지 않은 토큰입니다다."),
     NOT_MATCHED_VALUE(HttpStatus.BAD_REQUEST, "E0002", "저장된 값과 일지하지 않습니다."),
-    REFRESH_TOKEN_EXPIRED(HttpStatus.NOT_FOUND, "E0003", "이미 만료된 리프레시토큰입니다."),
+    REFRESH_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "E0003", "이미 만료된 리프레시토큰입니다."),
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "E0004", "요청한 리소스를 찾을 수 없습니다."),
-    PAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "E0005", "요청한 페이지를 찾을 수 없습니다."),
     NOT_MATCHED_PASSWORD(HttpStatus.NOT_FOUND, "E0006", "패스워드가 맞지 않습니다."),
     ALREADY_EXISTS_ENTITY(HttpStatus.BAD_REQUEST, "E0007", "이미 저장된 데이터에 중복된 생성 요청을 했습니다."),
     NOT_FOUND_PERMISSION(HttpStatus.FORBIDDEN, "E0008", "권한이 없습니다."),

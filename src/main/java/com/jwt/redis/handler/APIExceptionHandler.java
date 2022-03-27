@@ -1,4 +1,4 @@
-package com.jwt.redis.exception.handler;
+package com.jwt.redis.handler;
 
 import com.jwt.redis.exception.CustomRuntimeException;
 import com.jwt.redis.exception.ErrorCode;

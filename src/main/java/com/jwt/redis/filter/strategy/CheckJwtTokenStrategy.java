@@ -1,11 +1,14 @@
 package com.jwt.redis.filter.strategy;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
- * jwt token을 가져오는 전략 패턴을 사용합니다.
+ * jwt token 으로 인증하는 다양한 전략 패턴을 사용합니다.
  * */
 public interface CheckJwtTokenStrategy {
+
+    void setResponseToken(HttpServletResponse response, String token);
 
     String getTokenByRequest(HttpServletRequest request);
 }

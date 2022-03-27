@@ -6,12 +6,16 @@ import com.jwt.redis.model.type.JwtTokenType;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.util.ExceptionUtils;
+import org.graalvm.compiler.debug.Assertions;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.web.util.ThrowableCauseExtractor;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import javax.servlet.http.Cookie;
@@ -53,8 +57,13 @@ public class JwtTokenUtils {
     }
 
     public static Boolean isTokenExpired(String token) {
-        final Date expiration = extractAllClaims(token).getExpiration();
-        return expiration.before(new Date());
+
+        try {
+            parseClaims(token);
+        } catch (ExpiredJwtException e) {
+            return true;
+        }
+        return false;
     }
 
     private static Key getSigningKey() {
@@ -64,6 +73,11 @@ public class JwtTokenUtils {
 
     public static String generateToken(RegisteredUser registeredUser, JwtTokenType tokenType) {
 
+        return generateToken(registeredUser, tokenType, tokenType.getValidationSeconds());
+    }
+
+    public static String generateToken(RegisteredUser registeredUser, JwtTokenType tokenType, long expireTime) {
+
         Claims claims = Jwts.claims();
         claims.put("id", registeredUser.getId());
         claims.put("username", registeredUser.getUsername());
@@ -72,9 +86,10 @@ public class JwtTokenUtils {
         log.info(tokenType.getCookieName());
         return generateToken(
                 claims,
-                tokenType.getValidationSeconds()
+                expireTime
         );
     }
+
 
     public static String generateToken(Claims claims, long expireTime) {
 
@@ -105,7 +120,7 @@ public class JwtTokenUtils {
             log.error("Unsupported JWT token - {}", ex.getMessage());
         } catch (IllegalArgumentException ex) {
             log.error("JWT claims string is empty - {}", ex.getMessage());
-        } catch (JwtException ex){
+        } catch (JwtException ex) {
             log.error("JWT error - {}", ex.getMessage());
         }
         return false;
@@ -113,13 +128,13 @@ public class JwtTokenUtils {
 
     /**
      * 사용하기 전 반드시 토큰 검증해야 합니다.
-     * */
+     */
     public static Claims extractAllClaims(String token) {
 
         return parseClaims(token).getBody();
     }
 
-    private static Jws<Claims> parseClaims(String token){
+    private static Jws<Claims> parseClaims(String token) {
 
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
@@ -143,7 +158,7 @@ public class JwtTokenUtils {
 
         JwtTokenType tokenType = getTokenType(value);
 
-        if(!tokenType.equals(JwtTokenType.REFRESH)){
+        if (!tokenType.equals(JwtTokenType.REFRESH)) {
             throw new BadCredentialsException("did not match token Type");
         }
         return CookieUtil.createCookie(
@@ -156,7 +171,7 @@ public class JwtTokenUtils {
 
         JwtTokenType tokenType = getTokenType(value);
 
-        if(!tokenType.equals(JwtTokenType.ACCESS)){
+        if (!tokenType.equals(JwtTokenType.ACCESS)) {
             throw new BadCredentialsException("did not match token Type");
         }
 
