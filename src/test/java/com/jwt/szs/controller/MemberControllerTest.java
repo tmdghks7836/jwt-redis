@@ -6,9 +6,10 @@ import com.google.gson.Gson;
 import com.jwt.szs.exception.ErrorCode;
 import com.jwt.szs.exception.ErrorResponse;
 import com.jwt.szs.model.dto.AuthenticationRequest;
-import com.jwt.szs.model.dto.MemberCreationRequest;
 import com.jwt.szs.model.dto.MemberResponse;
+import com.jwt.szs.model.dto.UserDetailsImpl;
 import com.jwt.szs.model.type.JwtTokenType;
+import com.jwt.szs.service.CustomUserDetailsService;
 import com.jwt.szs.service.MemberService;
 import com.jwt.szs.utils.JwtTokenUtils;
 import com.jwt.szs.utils.RedisUtil;
@@ -16,9 +17,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -29,6 +33,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import javax.servlet.http.Cookie;
 import java.util.HashMap;
+import java.util.Optional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -41,14 +46,19 @@ class MemberControllerTest {
     @Autowired
     private WebApplicationContext context;
 
-    @Autowired
+    @MockBean
     private RedisUtil redisUtil;
 
     @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @MockBean
     private MemberService memberService;
 
-    private MockMvc mockMvc;
+    @MockBean
+    private CustomUserDetailsService customUserDetailsService;
 
+    private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
@@ -92,10 +102,19 @@ class MemberControllerTest {
 
     @Test
     public void 로그인() throws Exception {
+        MemberResponse memberResponse = MemberResponse.builder().username("tmedghks").id(1l).build();
+        String password = "123";
 
-        회원가입();
+        Mockito.when(memberService.authenticate(memberResponse.getUsername(), password))
+                .thenReturn(memberResponse);
+        Mockito.when(customUserDetailsService.loadUserByUsername(memberResponse.getUsername()))
+                .thenReturn(new UserDetailsImpl(
+                        memberResponse.getId(),
+                        memberResponse.getUsername(),
+                        passwordEncoder.encode(password)
+                ));
 
-        String json = usernamePasswordToJson("tmdghks", "123");
+        String json = usernamePasswordToJson(memberResponse.getUsername(), password);
 
         MvcResult mvcResult = mockMvc.perform(post("/api/v1/members/authenticate")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -103,9 +122,8 @@ class MemberControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn();
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        HashMap<String, String> hashMap = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), HashMap.class);
-
+        HashMap<String, String> hashMap = new ObjectMapper()
+                .readValue(mvcResult.getResponse().getContentAsString(), HashMap.class);
         String token = hashMap.get("token");
 
         Assertions.assertTrue(JwtTokenUtils.validate(token));
@@ -134,17 +152,16 @@ class MemberControllerTest {
     }
 
     @Test
-    public void 토큰재발급() throws Exception {
+    public void 토큰재발급_MockBean() throws Exception {
 
-        String username = "tmdghks";
-        String password = "123";
-        Long registeredId = memberService.join(new MemberCreationRequest(username, password));
+        MemberResponse memberResponse = MemberResponse.builder().id(123l).username("tmdghks").build();
+        String token = generateExpiredAccessToken(memberResponse);
+        Cookie refreshTokenCookie = generateRefreshTokenCookie(memberResponse.getId());
 
-        String token = generateExpiredAccessToken(new MemberResponse(registeredId, username));
-
-        Cookie refreshTokenCookie = generateRefreshTokenCookie();
-        redisUtil.setDataContainsExpireDate(refreshTokenCookie.getValue(),
-                registeredId, JwtTokenType.REFRESH.getValidationSeconds());
+        Mockito.when(redisUtil.<Long>getData(refreshTokenCookie.getValue()))
+                .thenReturn(Optional.of(memberResponse.getId()));
+        Mockito.when(memberService.getById(memberResponse.getId()))
+                .thenReturn(memberResponse);
 
         MvcResult mvcResult = mockMvc.perform(get("/api/v1/members/token/re-issuance")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -160,7 +177,7 @@ class MemberControllerTest {
     public void 토큰재발급_실패_아직만료되지않은_액세스토큰() throws Exception {
 
         String token = generateAccessToken();
-        Cookie refreshTokenCookie = generateRefreshTokenCookie();
+        Cookie refreshTokenCookie = generateRefreshTokenCookie(1l);
         MvcResult mvcResult = mockMvc.perform(get("/api/v1/members/token/re-issuance")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", "Bearer " + token)
@@ -201,9 +218,9 @@ class MemberControllerTest {
         return JwtTokenUtils.generateToken(memberResponse, JwtTokenType.ACCESS, -1l);
     }
 
-    private Cookie generateRefreshTokenCookie() {
+    private Cookie generateRefreshTokenCookie(Long id) {
 
-        MemberResponse memberResponse = MemberResponse.builder().id(1l).username("tmdghks").build();
+        MemberResponse memberResponse = MemberResponse.builder().id(id).username("tmdghks").build();
         final String token = JwtTokenUtils.generateToken(memberResponse, JwtTokenType.REFRESH);
         return JwtTokenUtils.createRefreshTokenCookie(token);
     }
