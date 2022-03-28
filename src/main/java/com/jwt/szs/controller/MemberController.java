@@ -62,10 +62,10 @@ public class MemberController {
         String accessToken = jwtTokenStrategy.getTokenByRequest(request);
 
         ProxyFactory proxyFactory = new ProxyFactory(jwtTokenService); //프록시 팩토리에 원하는 클래스를 주입
-        proxyFactory.addAdvice(new ValidateAccessTokenAdvice(accessToken)); // 공통으로 실행할 advice 객체 주입
         proxyFactory.addAdvice(new ValidateTokenRedisAdvice(redisUtil, refreshToken));
+        proxyFactory.addAdvice(new ValidateAccessTokenAdvice(redisUtil, accessToken, refreshToken)); // 공통으로 실행할 advice 객체 주입
         JwtTokenService proxy = (JwtTokenService) proxyFactory.getProxy();
-
+        
         String reIssuanceAccessToken = proxy.ReIssuanceAccessToken(refreshToken);
 
         return ResponseEntity.ok(reIssuanceAccessToken);
